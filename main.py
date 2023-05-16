@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
+
 
 app = FastAPI()
 
@@ -74,3 +77,24 @@ def retorno(pelicula: str):
         'retorno': r,
         'anio': a
     }
+
+@app.get('/recomendacion/{titulo}')
+def recomendacion(titulo):
+    '''Ingresasun nombre de pelicula y te recomienda las similares en una lista'''
+    i = pd.read_csv("titulos.csv").iloc[:10000]
+    tfidf = TfidfVectorizer(stop_words="english")
+    i["overview"] = i["overview"].fillna("")
+
+    tfidf_matriz = tfidf.fit_transform(i["overview"])
+    coseno_sim = linear_kernel(tfidf_matriz, tfidf_matriz)
+    
+    indices = pd.Series(i.index, index=i["title"]).drop_duplicates()
+    idx = indices[titulo]
+    simil = list(enumerate(coseno_sim[idx]))
+    simil = sorted(simil, key=lambda x: x[1], reverse=True)
+    simil = simil[1:11]
+    movie_index = [i[0] for i in simil]
+
+    lista = i["title"].iloc[movie_index].to_list()[:5]
+    
+    return {'lista recomendada': lista}
