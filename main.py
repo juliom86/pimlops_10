@@ -79,9 +79,9 @@ def retorno(pelicula: str):
     }
 
 @app.get('/recomendacion/{titulo}')
-def recomendacion(titulo):
+def recomendacion(titulo: str):
     '''Ingresasun nombre de pelicula y te recomienda las similares en una lista'''
-    i = pd.read_csv("titulos.csv").iloc[:9000]
+    i = pd.read_csv("titulos.csv").iloc[:7000]
     tfidf = TfidfVectorizer(stop_words="english")
     i["overview"] = i["overview"].fillna("")
 
